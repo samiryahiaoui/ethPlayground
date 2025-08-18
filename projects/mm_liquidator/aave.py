@@ -13,7 +13,7 @@ infura_mainnet_url = os.getenv("infura_mainnet_url")
 ETH_PROVIDER = infura_mainnet_url
 
 # Aave V3 Pool contract address (Ethereum mainnet)
-AAVE_V3_POOL_ADDRESS = "0x7BeA39867e4169dBe237d55C8242a8f2fcDcc387"
+AAVE_V3_POOL_ADDRESS = "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2"
 
 # ABI fragment for the LiquidationCall event
 LIQUIDATION_CALL_EVENT_ABI = {
@@ -48,7 +48,7 @@ def get_liquidation_events(w3, from_block, to_block):
     contract = w3.eth.contract(address=AAVE_V3_POOL_ADDRESS, abi=[LIQUIDATION_CALL_EVENT_ABI])
     event = contract.events.LiquidationCall
 
-    logs = event.get_logs(fromBlock=from_block, toBlock=to_block)
+    logs = event.get_logs(from_block=from_block, to_block=to_block)
     results = []
     for log in logs:
         results.append({
@@ -65,6 +65,7 @@ def get_liquidation_events(w3, from_block, to_block):
     return results
 
 def main():
+    N = 100 # default number of blocks starting from last. 
     last_block = get_last_eth_block()
     print(f"last Ethereum block: {last_block}")
     if len(sys.argv) != 2:
@@ -74,12 +75,12 @@ def main():
     else:
         print(f"Usage: python {sys.argv[0]} <N_BLOCKS>")
         N = int(sys.argv[1])
-
-    from_block = max(0, last_block - N + 1)
-    to_block = last_block
+        from_block = max(0, last_block - N + 1)
+        to_block = last_block
 
     print(f"Fetching LiquidationCall events from block {from_block} to {to_block}...")
 
+    w3 = get_web3()
     events = get_liquidation_events(w3, from_block, to_block)
     print(f"Found {len(events)} LiquidationCall events in the last {N} blocks.")
     for e in events:
